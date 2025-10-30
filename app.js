@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const tasks = [];
+  
     const appContainer = document.createElement("div");
     appContainer.className = "todo-app";
   
@@ -30,4 +32,34 @@ document.addEventListener("DOMContentLoaded", () => {
   
     appContainer.append(title, form, taskList);
     document.body.appendChild(appContainer);
+  
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+  
+      const taskTitle = inputTitle.value.trim();
+      const taskDate = inputDate.value;
+  
+      if (!taskTitle) return;
+  
+      const newTask = {
+        id: Date.now(),
+        title: taskTitle,
+        date: taskDate,
+        completed: false,
+      };
+  
+      tasks.push(newTask);
+      renderTasks(tasks);
+      form.reset();
+    });
+  
+    function renderTasks(tasks) {
+      taskList.innerHTML = "";
+  
+      tasks.forEach(task => {
+        const li = document.createElement("li");
+        li.textContent = `${task.title} ${task.date}`;
+        taskList.appendChild(li);
+      });
+    }
   });
