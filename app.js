@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const tasks = [];
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
   
     const appContainer = document.createElement("div");
     appContainer.className = "todo-app";
@@ -49,11 +49,16 @@ document.addEventListener("DOMContentLoaded", () => {
       };
   
       tasks.push(newTask);
-      renderTasks(tasks);
+      saveTasks();
+      renderTasks();
       form.reset();
     });
   
-    function renderTasks(tasks) {
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+  
+    function renderTasks() {
       taskList.innerHTML = "";
   
       tasks.forEach(task => {
@@ -62,4 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
         taskList.appendChild(li);
       });
     }
+  
+    renderTasks();
   });
