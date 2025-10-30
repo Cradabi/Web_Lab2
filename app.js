@@ -27,10 +27,26 @@ document.addEventListener("DOMContentLoaded", () => {
   
     form.append(inputTitle, inputDate, addButton);
   
+    const filtersContainer = document.createElement("div");
+    filtersContainer.className = "filters";
+  
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Поиск...";
+  
+    const statusFilter = document.createElement("select");
+    statusFilter.innerHTML = `
+      <option value="all">Все</option>
+      <option value="done">Выполненные</option>
+      <option value="undone">Невыполненные</option>
+    `;
+  
+    filtersContainer.append(searchInput, statusFilter);
+  
     const taskList = document.createElement("ul");
     taskList.className = "task-list";
   
-    appContainer.append(title, form, taskList);
+    appContainer.append(title, form, filtersContainer, taskList);
     document.body.appendChild(appContainer);
   
     form.addEventListener("submit", (e) => {
@@ -54,14 +70,17 @@ document.addEventListener("DOMContentLoaded", () => {
       form.reset();
     });
   
+    searchInput.addEventListener("input", filterTasks);
+    statusFilter.addEventListener("change", filterTasks);
+  
     function saveTasks() {
       localStorage.setItem("tasks", JSON.stringify(tasks));
     }
   
-    function renderTasks() {
+    function renderTasks(filteredTasks = tasks) {
       taskList.innerHTML = "";
   
-      tasks.forEach(task => {
+      filteredTasks.forEach(task => {
         const li = document.createElement("li");
         li.className = "task";
         li.dataset.id = task.id;
@@ -75,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
         completeBtn.addEventListener("click", () => {
           task.completed = !task.completed;
           saveTasks();
-          renderTasks();
+          filterTasks();
         });
   
         const editBtn = document.createElement("button");
@@ -83,12 +102,10 @@ document.addEventListener("DOMContentLoaded", () => {
         editBtn.addEventListener("click", () => {
           const newTitle = prompt("Изменить название задачи:", task.title);
           const newDate = prompt("Изменить дату (гггг-мм-дд):", task.date);
-  
           if (newTitle !== null) task.title = newTitle.trim() || task.title;
           if (newDate !== null) task.date = newDate;
-  
           saveTasks();
-          renderTasks();
+          filterTasks();
         });
   
         const deleteBtn = document.createElement("button");
@@ -96,12 +113,28 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteBtn.addEventListener("click", () => {
           tasks = tasks.filter(t => t.id !== task.id);
           saveTasks();
-          renderTasks();
+          filterTasks();
         });
   
         li.append(titleSpan, completeBtn, editBtn, deleteBtn);
         taskList.appendChild(li);
       });
+    }
+  
+    function filterTasks() {
+      const searchVal = searchInput.value.toLowerCase();
+      const status = statusFilter.value;
+  
+      const filtered = tasks.filter(task => {
+        const matchesTitle = task.title.toLowerCase().includes(searchVal);
+        const matchesStatus =
+          status === "all" ||
+          (status === "done" && task.completed) ||
+          (status === "undone" && !task.completed);
+        return matchesTitle && matchesStatus;
+      });
+  
+      renderTasks(filtered);
     }
   
     renderTasks();
