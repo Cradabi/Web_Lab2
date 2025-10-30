@@ -63,7 +63,30 @@ document.addEventListener("DOMContentLoaded", () => {
   
       tasks.forEach(task => {
         const li = document.createElement("li");
-        li.textContent = `${task.title} ${task.date}`;
+        li.className = "task";
+        li.dataset.id = task.id;
+        if (task.completed) li.classList.add("completed");
+  
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = `${task.title} ${task.date || ""}`;
+  
+        const completeBtn = document.createElement("button");
+        completeBtn.textContent = "✓";
+        completeBtn.addEventListener("click", () => {
+          task.completed = !task.completed;
+          saveTasks();
+          renderTasks();
+        });
+  
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "🗑";
+        deleteBtn.addEventListener("click", () => {
+          tasks = tasks.filter(t => t.id !== task.id);
+          saveTasks();
+          renderTasks();
+        });
+  
+        li.append(titleSpan, completeBtn, deleteBtn);
         taskList.appendChild(li);
       });
     }
