@@ -41,7 +41,11 @@ document.addEventListener("DOMContentLoaded", () => {
       <option value="undone">Невыполненные</option>
     `;
   
-    filtersContainer.append(searchInput, statusFilter);
+    const sortBtn = document.createElement("button");
+    sortBtn.textContent = "Сортировать по дате";
+    sortBtn.type = "button";
+  
+    filtersContainer.append(searchInput, statusFilter, sortBtn);
   
     const taskList = document.createElement("ul");
     taskList.className = "task-list";
@@ -72,6 +76,12 @@ document.addEventListener("DOMContentLoaded", () => {
   
     searchInput.addEventListener("input", filterTasks);
     statusFilter.addEventListener("change", filterTasks);
+  
+    sortBtn.addEventListener("click", () => {
+      tasks.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+      saveTasks();
+      filterTasks();
+    });
   
     function saveTasks() {
       localStorage.setItem("tasks", JSON.stringify(tasks));
