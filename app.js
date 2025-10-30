@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    let draggedItem = null;
   
     const appContainer = document.createElement("div");
     appContainer.className = "todo-app";
@@ -83,6 +84,33 @@ document.addEventListener("DOMContentLoaded", () => {
       filterTasks();
     });
   
+    taskList.addEventListener("dragstart", (e) => {
+      if (e.target && e.target.matches("li.task")) {
+        draggedItem = e.target;
+      }
+    });
+  
+    taskList.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const target = e.target.closest("li.task");
+      if (target && target !== draggedItem) {
+        const rect = target.getBoundingClientRect();
+        const offset = e.clientY - rect.top;
+        if (offset > rect.height / 2) {
+          target.after(draggedItem);
+        } else {
+          target.before(draggedItem);
+        }
+      }
+    });
+  
+    taskList.addEventListener("drop", () => {
+      const ids = [...taskList.children].map(li => +li.dataset.id);
+      tasks.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+      saveTasks();
+      filterTasks();
+    });
+  
     function saveTasks() {
       localStorage.setItem("tasks", JSON.stringify(tasks));
     }
@@ -93,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
       filteredTasks.forEach(task => {
         const li = document.createElement("li");
         li.className = "task";
+        li.draggable = true;
         li.dataset.id = task.id;
         if (task.completed) li.classList.add("completed");
   
