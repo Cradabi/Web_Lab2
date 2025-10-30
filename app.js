@@ -34,19 +34,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.createElement("input");
     searchInput.type = "text";
     searchInput.placeholder = "Поиск...";
+    searchInput.className = "search-input";
   
     const statusFilter = document.createElement("select");
+    statusFilter.className = "status-filter";
     statusFilter.innerHTML = `
       <option value="all">Все</option>
       <option value="done">Выполненные</option>
       <option value="undone">Невыполненные</option>
     `;
   
-    const sortBtn = document.createElement("button");
-    sortBtn.textContent = "Сортировать по дате";
-    sortBtn.type = "button";
+    const sortByDateBtn = document.createElement("button");
+    sortByDateBtn.type = "button";
+    sortByDateBtn.textContent = "Сортировать по дате";
+    sortByDateBtn.className = "sort-btn";
   
-    filtersContainer.append(searchInput, statusFilter, sortBtn);
+    filtersContainer.append(searchInput, statusFilter, sortByDateBtn);
   
     const taskList = document.createElement("ul");
     taskList.className = "task-list";
@@ -56,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
   
     form.addEventListener("submit", (e) => {
       e.preventDefault();
-  
       const taskTitle = inputTitle.value.trim();
       const taskDate = inputDate.value;
   
@@ -71,22 +73,24 @@ document.addEventListener("DOMContentLoaded", () => {
   
       tasks.push(newTask);
       saveTasks();
-      renderTasks();
+      renderTasks(tasks);
+  
       form.reset();
     });
   
     searchInput.addEventListener("input", filterTasks);
     statusFilter.addEventListener("change", filterTasks);
   
-    sortBtn.addEventListener("click", () => {
+    sortByDateBtn.addEventListener("click", () => {
       tasks.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
       saveTasks();
-      filterTasks();
+      renderTasks(tasks);
     });
   
     taskList.addEventListener("dragstart", (e) => {
       if (e.target && e.target.matches("li.task")) {
         draggedItem = e.target;
+        e.dataTransfer.effectAllowed = "move";
       }
     });
   
@@ -94,9 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const target = e.target.closest("li.task");
       if (target && target !== draggedItem) {
-        const rect = target.getBoundingClientRect();
-        const offset = e.clientY - rect.top;
-        if (offset > rect.height / 2) {
+        const bounding = target.getBoundingClientRect();
+        const offset = e.clientY - bounding.top;
+        if (offset > bounding.height / 2) {
           target.after(draggedItem);
         } else {
           target.before(draggedItem);
@@ -105,20 +109,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   
     taskList.addEventListener("drop", () => {
-      const ids = [...taskList.children].map(li => +li.dataset.id);
+      const ids = [...taskList.children].map((li) => +li.dataset.id);
       tasks.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
       saveTasks();
-      filterTasks();
+      renderTasks(tasks);
     });
   
-    function saveTasks() {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-  
-    function renderTasks(filteredTasks = tasks) {
+    function renderTasks(taskArray) {
       taskList.innerHTML = "";
   
-      filteredTasks.forEach(task => {
+      taskArray.forEach((task) => {
         const li = document.createElement("li");
         li.className = "task";
         li.draggable = true;
@@ -126,46 +126,47 @@ document.addEventListener("DOMContentLoaded", () => {
         if (task.completed) li.classList.add("completed");
   
         const titleSpan = document.createElement("span");
-        titleSpan.textContent = `${task.title} ${task.date || ""}`;
+        titleSpan.className = "task-title";
+        titleSpan.textContent = task.title;
+  
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "task-date-display";
+        dateSpan.textContent = task.date || "";
   
         const completeBtn = document.createElement("button");
         completeBtn.textContent = "✓";
+        completeBtn.title = "Выполнено";
         completeBtn.addEventListener("click", () => {
           task.completed = !task.completed;
           saveTasks();
-          filterTasks();
+          renderTasks(tasks);
         });
   
         const editBtn = document.createElement("button");
         editBtn.textContent = "✎";
-        editBtn.addEventListener("click", () => {
-          const newTitle = prompt("Изменить название задачи:", task.title);
-          const newDate = prompt("Изменить дату (гггг-мм-дд):", task.date);
-          if (newTitle !== null) task.title = newTitle.trim() || task.title;
-          if (newDate !== null) task.date = newDate;
-          saveTasks();
-          filterTasks();
-        });
+        editBtn.title = "Редактировать";
+        editBtn.addEventListener("click", () => editTask(task));
   
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "🗑";
+        deleteBtn.title = "Удалить";
         deleteBtn.addEventListener("click", () => {
-          tasks = tasks.filter(t => t.id !== task.id);
+          tasks = tasks.filter((t) => t.id !== task.id);
           saveTasks();
-          filterTasks();
+          renderTasks(tasks);
         });
   
-        li.append(titleSpan, completeBtn, editBtn, deleteBtn);
+        li.append(titleSpan, dateSpan, completeBtn, editBtn, deleteBtn);
         taskList.appendChild(li);
       });
     }
   
     function filterTasks() {
-      const searchVal = searchInput.value.toLowerCase();
+      const searchValue = searchInput.value.toLowerCase();
       const status = statusFilter.value;
   
-      const filtered = tasks.filter(task => {
-        const matchesTitle = task.title.toLowerCase().includes(searchVal);
+      const filtered = tasks.filter((task) => {
+        const matchesTitle = task.title.toLowerCase().includes(searchValue);
         const matchesStatus =
           status === "all" ||
           (status === "done" && task.completed) ||
@@ -176,5 +177,20 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTasks(filtered);
     }
   
-    renderTasks();
+    function editTask(task) {
+      const newTitle = prompt("Изменить название задачи:", task.title);
+      const newDate = prompt("Изменить дату (гггг-мм-дд):", task.date);
+  
+      if (newTitle !== null) task.title = newTitle.trim() || task.title;
+      if (newDate !== null) task.date = newDate;
+  
+      saveTasks();
+      renderTasks(tasks);
+    }
+  
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+  
+    renderTasks(tasks);
   });
