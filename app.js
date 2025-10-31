@@ -60,9 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const taskTitle = inputTitle.value.trim();
-    const taskDate = inputDate.value;
+    let taskDate = inputDate.value;
 
     if (!taskTitle) return;
+
+    if (!taskDate) {
+      taskDate = getTodayISO();
+    }
 
     const newTask = {
       id: Date.now(),
@@ -179,11 +183,21 @@ document.addEventListener("DOMContentLoaded", () => {
   function editTask(task) {
     const currentDateFormatted = formatDate(task.date);
     const newTitle = prompt("Изменить название задачи:", task.title);
-    const newDateInput = prompt("Изменить дату (дд-мм-гггг):", currentDateFormatted);
+    const newDateInput = prompt(
+      "Изменить дату (дд-мм-гггг):",
+      currentDateFormatted
+    );
 
-    if (newTitle !== null) task.title = newTitle.trim() || task.title;
-    if (newDateInput !== null && validateDDMMYYYY(newDateInput)) {
-      task.date = convertToISO(newDateInput);
+    if (newTitle !== null) {
+      task.title = newTitle.trim() || task.title;
+    }
+
+    if (newDateInput !== null && newDateInput.trim() !== "") {
+      if (validateDDMMYYYY(newDateInput) && isValidDDMMYYYY(newDateInput)) {
+        task.date = convertToISO(newDateInput);
+      } else {
+        alert("Неверный формат или дата. Используйте формат дд-мм-гггг.");
+      }
     }
 
     saveTasks();
@@ -210,6 +224,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function validateDDMMYYYY(dateStr) {
     return /^\d{2}-\d{2}-\d{4}$/.test(dateStr);
+  }
+
+  function isValidDDMMYYYY(dateStr) {
+    const [dd, mm, yyyy] = dateStr.split("-");
+    const date = new Date(`${yyyy}-${mm}-${dd}`);
+    return (
+      !isNaN(date.getTime()) &&
+      Number(dd) === date.getDate() &&
+      Number(mm) === date.getMonth() + 1 &&
+      Number(yyyy) === date.getFullYear()
+    );
+  }
+
+  function getTodayISO() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   renderTasks(tasks);
