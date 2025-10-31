@@ -185,7 +185,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function renderTasks(list = tasks) {
-    taskList.innerHTML = "";
+    while (taskList.firstChild) {
+      taskList.removeChild(taskList.firstChild);
+    }
+
     list.forEach((task) => {
       const li = document.createElement("li");
       li.className = "task";
