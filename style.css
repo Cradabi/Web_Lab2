@@ -5,6 +5,19 @@
   }
 
   .filters {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group input,
+  .filter-group select,
+  .filter-group button {
+    width: 100%;
+    box-sizing: border-box;
   }
 }
