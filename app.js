@@ -95,9 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.createElement("input");
   searchInput.type = "text";
   searchInput.placeholder = "Поиск по задачам";
-  Object.assign(searchInput.style, {
-    padding: "8px",
-  });
+  Object.assign(searchInput.style, { padding: "8px" });
 
   const statusFilter = document.createElement("select");
   ["Все задачи", "Выполненные", "Невыполненные"].forEach((text, index) => {
@@ -124,13 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
     createFilterGroup("Статус", statusFilter),
     createFilterGroup("Сортировка", sortBtn)
   );
-
-  function applyResponsiveFilters() {
-    filtersContainer.style.gridTemplateColumns =
-      window.innerWidth <= 600 ? "1fr" : "1fr 1fr 1fr";
-  }
-  window.addEventListener("resize", applyResponsiveFilters);
-  applyResponsiveFilters();
 
   const taskList = document.createElement("ul");
   taskList.className = "task-list";
@@ -212,9 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const title = document.createElement("span");
       title.textContent = task.title;
-      Object.assign(title.style, {
-        flex: "2",
-      });
+      Object.assign(title.style, { flex: "2" });
 
       const date = document.createElement("span");
       date.textContent = formatDate(task.date);
@@ -294,7 +283,6 @@ document.addEventListener("DOMContentLoaded", () => {
     saveTasks();
     renderTasks(tasks);
   }
-
 
   function saveTasks() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
